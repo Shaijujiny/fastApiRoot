@@ -1,0 +1,51 @@
+# =========================
+# FastAPI Core
+# =========================
+fastapi
+uvicorn[standard]
+
+# =========================
+# Pydantic Settings (v2)
+# =========================
+pydantic
+pydantic-settings
+
+# =========================
+# PostgreSQL (Async)
+# =========================
+sqlalchemy
+asyncpg
+
+# =========================
+# MySQL (Async)
+# =========================
+aiomysql
+
+# =========================
+# MongoDB (Async)
+# =========================
+motor
+
+# =========================
+# JWT
+# =========================
+python-jose[cryptography]
+
+# =========================
+# Password Hashing
+# =========================
+passlib[bcrypt]
+
+# =========================
+# Optional Utilities
+# =========================
+python-multipart
+
+redis==5.2.1
+PyJWT==2.10.1
+email-validator==2.3.0
+greenlet
+sqlalchemy[asyncio]
+asyncpg
+aiomysql
+motor
