@@ -4,6 +4,11 @@
 
 This document serves as a comprehensive technical breakdown of the architecture, features, and engineering decisions behind the project.
 
+- **Author**: shaijujin ([shaijujiny@gmail.com](mailto:shaijujiny@gmail.com))
+- **Portfolio**: [https://shaijujin.github.io/shaiju-john/](https://shaijujin.github.io/shaiju-john/)
+- **GitHub Repository**: [https://github.com/Shaijujiny/fastApiRoot.git](https://github.com/Shaijujiny/fastApiRoot.git)
+- **PyPI Package**: [https://pypi.org/project/fastapi-fusion-core/](https://pypi.org/project/fastapi-fusion-core/)
+
 ---
 
 ## 🛠️ 1. Technical Stack & Foundation
@@ -108,5 +113,34 @@ A custom `cli.py` engine hooks into the terminal, injects into the OS PATH, and 
 * **Lifespan Handlers**: Upgraded from older `@app.on_event("startup")` architecture to modern, safe `@asynccontextmanager` lifespans for stable database ignition/teardown.
 * **PyTest Asyncio**: Built-in HTTPX ASGITransport client designed to rigorously test all routes synchronously without needing to boot a live physical port.
 * **Strict Code Quality**: Eliminates hidden Python crashes, leveraging deep Type Hinting across the entire data layer. 
+
+---
+
+## 🧠 Logical Mind Map
+
+```mermaid
+mindmap
+  root((FastAPI Fusion Core))
+    Architecture
+      REST APIs
+      GraphQL
+      Clean Structure
+    Databases
+      PostgreSQL
+      MySQL
+      MongoDB
+    Security
+      JWT Authentication
+      Redis Sessions
+      RSA Signatures
+      Bcrypt
+    Middleware
+      Global Exception Handler
+      Response Builder
+      i18n Translation
+    Ecosystem
+      PyPI Distributed
+      Pytest-Asyncio
+```
 
 Built for performance. Built for production.
