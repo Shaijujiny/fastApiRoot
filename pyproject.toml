@@ -1,0 +1,48 @@
+[project]
+name = "fastapi-fusion-core"
+version = "0.1.1"
+description = "A premium, production-ready FastAPI boilerplate with built-in multi-database support and GraphQL."
+readme = "README.md"
+
+dependencies = [
+    "fastapi",
+    "pydantic",
+    "pydantic-settings"
+]
+
+[project.optional-dependencies]
+
+postgres = [
+    "sqlalchemy",
+    "asyncpg"
+]
+
+mysql = [
+    "sqlalchemy",
+    "aiomysql"
+]
+
+mongo = [
+    "motor"
+]
+
+auth = [
+    "python-jose[cryptography]",
+    "passlib[bcrypt]",
+    "redis==5.2.1"
+]
+
+graphql = [
+    "strawberry-graphql[fastapi]"
+]
+
+[project.scripts]
+fastapi-fusion = "fastapi_fusion_core.cli:main"
+
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools]
+packages = ["fastapi_fusion_core"]
+include-package-data = true

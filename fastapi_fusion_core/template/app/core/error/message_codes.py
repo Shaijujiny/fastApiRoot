@@ -1,0 +1,41 @@
+from enum import StrEnum
+
+
+class MessageCode(StrEnum):
+
+    # =========================
+    # SUCCESS
+    # =========================
+    RESOURCE_CREATED = "RESOURCE_CREATED"
+    OPERATION_SUCCESS = "OPERATION_SUCCESS"
+    LOGIN_SUCCESS = "LOGIN_SUCCESS"
+    LOGOUT_SUCCESS = "LOGOUT_SUCCESS"
+    DATA_FETCHED = "DATA_FETCHED"
+    DATA_UPDATED = "DATA_UPDATED"
+    DATA_DELETED = "DATA_DELETED"
+
+    # =========================
+    # VALIDATION
+    # =========================
+    VALIDATION_ERROR = "VALIDATION_ERROR"
+    INVALID_INPUT = "INVALID_INPUT"
+    REQUIRED_FIELD_MISSING = "REQUIRED_FIELD_MISSING"
+
+    # =========================
+    # AUTH
+    # =========================
+    INVALID_CREDENTIALS = "INVALID_CREDENTIALS"
+    UNAUTHORIZED_ACCESS = "UNAUTHORIZED_ACCESS"
+    ACCESS_DENIED = "ACCESS_DENIED"
+    TOKEN_EXPIRED = "TOKEN_EXPIRED"
+    INVALID_TOKEN = "INVALID_TOKEN"
+    SESSION_INVALID = "SESSION_INVALID"
+    USERNAME_EXISTS = "USERNAME_EXISTS"
+
+    # =========================
+    # SYSTEM
+    # =========================
+    RESOURCE_NOT_FOUND = "RESOURCE_NOT_FOUND"
+    CONFLICT_ERROR = "CONFLICT_ERROR"
+    INTERNAL_ERROR = "INTERNAL_ERROR"
+    SERVICE_UNAVAILABLE = "SERVICE_UNAVAILABLE"
