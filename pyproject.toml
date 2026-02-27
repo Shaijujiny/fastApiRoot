@@ -1,6 +1,6 @@
 [project]
 name = "fastapi-fusion-core"
-version = "0.1.1"
+version = "0.1.2"
 description = "A premium, production-ready FastAPI boilerplate with built-in multi-database support and GraphQL."
 readme = "README.md"
 

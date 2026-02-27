@@ -1,5 +1,6 @@
 from fastapi import HTTPException, Request
 from fastapi.exceptions import RequestValidationError
+from sqlalchemy.exc import OperationalError as SQLAlchemyOperationalError
 
 from app.config import settings
 from app.core.error.error_types import ErrorType
@@ -27,15 +28,28 @@ async def global_exception_handler(request: Request, exc: Exception):
     """Handles all uncaught exceptions."""
     exc_type = type(exc).__name__
 
-    # Surface specific database connection errors like InvalidCatalogNameError
+    # ── SQLAlchemy / PyMySQL database connection errors ──────────────────────
+    # Covers: unknown database, wrong credentials, host unreachable, etc.
+    if isinstance(exc, SQLAlchemyOperationalError):
+        # Extract the root cause message cleanly
+        root_cause = exc.orig.args[1] if exc.orig and exc.orig.args else str(exc)
+        return ResponseBuilder.build(
+            ErrorType.SYS_500_INTERNAL_ERROR,
+            MessageCode.INTERNAL_ERROR,
+            lang="en",
+            data={"detail": f"Database connection error: {root_cause}"},
+        )
+
+    # ── asyncpg / PostgreSQL catalog errors ──────────────────────────────────
     if "asyncpg" in str(type(exc)) or exc_type == "InvalidCatalogNameError":
         return ResponseBuilder.build(
             ErrorType.SYS_500_INTERNAL_ERROR,
             MessageCode.INTERNAL_ERROR,
             lang="en",
-            data={"detail": f"Database Error: {str(exc)}"},
+            data={"detail": f"Database error: {exc}"},
         )
 
+    # ── Development: expose full exception detail ────────────────────────────
     if settings.ENVIRONMENT == "development":
         return ResponseBuilder.build(
             ErrorType.SYS_500_INTERNAL_ERROR,
@@ -47,6 +61,7 @@ async def global_exception_handler(request: Request, exc: Exception):
             },
         )
 
+    # ── Production: return generic error ────────────────────────────────────
     return ResponseBuilder.build(
         ErrorType.SYS_500_INTERNAL_ERROR,
         MessageCode.INTERNAL_ERROR,

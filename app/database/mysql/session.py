@@ -1,12 +1,12 @@
-
 from collections.abc import Generator
 from contextlib import contextmanager
 from urllib.parse import quote_plus
 
+from fastapi import status
 from pymysql import OperationalError
 from sqlalchemy import create_engine
+from sqlalchemy.exc import OperationalError as SQLAlchemyOperationalError
 from sqlalchemy.orm import Session, sessionmaker
-
 
 from app.config import settings as CONFIG_SETTINGS
 from app.core.logging.logger import get_logger
@@ -39,53 +39,92 @@ def build_sqlalchemy_database_url_from_settings():
     else:
         database_url = f"mysql+pymysql://{db_user}:{encoded_password}@{db_host}:{db_port}/{db_name}"
 
-
     return database_url
 
 
-
 SQLALCHEMY_DATABASE_URL = build_sqlalchemy_database_url_from_settings()
-_engine = create_engine(
-    SQLALCHEMY_DATABASE_URL,
-    future=True,
-    pool_recycle=3600,
-)
 
-_session_local = sessionmaker(autocommit=False, autoflush=False, bind=_engine)
+try:
+    _engine = create_engine(
+        SQLALCHEMY_DATABASE_URL,
+        future=True,
+        pool_recycle=3600,
+    )
+    _session_local = sessionmaker(autocommit=False, autoflush=False, bind=_engine)
+except Exception as _exc:
+    # Defer the import to avoid circular imports at module level
+    from app.core.error.error_types import ErrorType
+    from app.core.error.message_codes import MessageCode
+    from app.core.middleware.exception_middleware import AppException
+
+    logger.critical(
+        "MySQL engine creation failed — check MYSQL_HOST / MYSQL_DB / credentials. "
+        "Error: %s",
+        _exc,
+    )
+    raise AppException(
+        ErrorType.SYS_500_INTERNAL_ERROR,
+        MessageCode.INTERNAL_ERROR,
+        status.HTTP_500_INTERNAL_SERVER_ERROR,
+        detail=f"MySQL connection error: {_exc}",
+    ) from _exc
 
 
 def get_mysql_db() -> Generator[Session, None, None]:
     """
-    Get the database session.
+    Get the MySQL database session.
 
-    Returns
-    -------
-        db: The database session.
+    Yields
+    ------
+        db: The active SQLAlchemy Session.
 
     Raises
     ------
-        OperationalError: If an error occurs while accessing the database.
+        AppException: Wraps any PyMySQL / SQLAlchemy operational error into a
+            structured 500 response so callers always receive a clean JSON body.
     """
+    from app.core.error.error_types import ErrorType
+    from app.core.error.message_codes import MessageCode
+    from app.core.middleware.exception_middleware import AppException
+
     db = _session_local()
     try:
         yield db
-    except OperationalError as e:
-        error_message = f"An error occurred while getting the database session. Error: {e!s}"
-        logger.exception(error_message)
-        raise  # Re-raise the exception for proper error handling outside the context manager
+    except (OperationalError, SQLAlchemyOperationalError) as exc:
+        logger.exception("MySQL OperationalError: %s", exc)
+        raise AppException(
+            ErrorType.SYS_500_INTERNAL_ERROR,
+            MessageCode.INTERNAL_ERROR,
+            status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"MySQL error: {exc}",
+        ) from exc
+    except Exception as exc:
+        logger.exception("Unexpected MySQL session error: %s", exc)
+        raise
     finally:
         db.close()
 
 
 @contextmanager
 def get_ctx_mysql_db() -> Generator[Session, None, None]:
-    """Get the database session within a context manager."""
-    db = _session_local()  # Assuming _session_local() creates a new session
+    """Get the MySQL database session within a context manager."""
+    from app.core.error.error_types import ErrorType
+    from app.core.error.message_codes import MessageCode
+    from app.core.middleware.exception_middleware import AppException
+
+    db = _session_local()
     try:
         yield db
-    except Exception as e:
-        error_message = f"An error occurred while getting the database session. Error: {e!s}"
-        logger.exception(error_message)
-        raise  # Re-raise the exception for proper error handling outside the context manager
+    except (OperationalError, SQLAlchemyOperationalError) as exc:
+        logger.exception("MySQL OperationalError (ctx): %s", exc)
+        raise AppException(
+            ErrorType.SYS_500_INTERNAL_ERROR,
+            MessageCode.INTERNAL_ERROR,
+            status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"MySQL error: {exc}",
+        ) from exc
+    except Exception as exc:
+        logger.exception("Unexpected MySQL session error (ctx): %s", exc)
+        raise
     finally:
-        db.close()  # Close the database session
+        db.close()
